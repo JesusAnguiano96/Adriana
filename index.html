@@ -296,7 +296,7 @@
     opacity:.85;
   }
 
-  /* Video embed */
+  /* Video embed (we keep the same box, but we will NOT iframe Drive anymore) */
   .videoWrap{
     position: relative;
     width:100%;
@@ -308,12 +308,23 @@
     box-shadow: 0 14px 42px rgba(0,0,0,.14);
   }
   .videoWrap::before{ content:""; display:block; padding-top:56.25%; }
-  .videoWrap iframe{
+  .videoWrap .videoInner{
     position:absolute;
     inset:0;
-    width:100%;
-    height:100%;
-    border:0;
+    display:grid;
+    place-items:center;
+    padding:16px;
+    text-align:center;
+    color:#fff;
+  }
+  .videoWrap .videoInner p{
+    margin:0 0 10px;
+    font-weight:900;
+  }
+  .videoWrap .videoInner small{
+    opacity:.85;
+    display:block;
+    margin-top:10px;
   }
 
   /* Hearts floating */
@@ -402,21 +413,19 @@
         💞 Ya es momento 💞
       </p>
 
+      <!-- ✅ OPCIÓN B: en vez de iframe, botón que abre Drive en pestaña nueva -->
       <div class="videoWrap">
-        <!-- ✅ AJUSTE 2 APLICADO AQUÍ: playsinline + allow fullscreen -->
-        <iframe
-          id="driveFrame"
-          allow="autoplay; fullscreen"
-          allowfullscreen
-          webkitallowfullscreen
-          mozallowfullscreen
-          playsinline
-          referrerpolicy="no-referrer">
-        </iframe>
+        <div class="videoInner">
+          <div>
+            <p>🎬 Tu video está listo, mi amor</p>
+            <button class="btn btn2" id="openVideoBtn">Ver video 💞</button>
+            <small>(Disfrutalo mucho.......)</small>
+          </div>
+        </div>
       </div>
 
       <p style="font-size:12px; opacity:.78; margin-top:10px;">
-        Si aún aparece “Necesitas acceso”, espera 1–2 minutos y recarga.
+        Si al abrir aparece alguna advertencia de Drive, solo toca “Reproducir” o “Descargar de todos modos”.
       </p>
     </div>
   </div>
@@ -447,15 +456,13 @@
    CONFIG
 ========================= */
 
-// Drive video (preview embebido)
+// Drive video (abrir en pestaña nueva)
 const DRIVE_FILE_ID = "1M6qzrnnEx0mPrOjje3fO-LWf5dgrBV5e";
+const DRIVE_VIEW_URL = `https://drive.google.com/file/d/${DRIVE_FILE_ID}/view?usp=sharing`;
 
-// ✅ Más compatible para iPhone / Chrome con iframe
-const DRIVE_PREVIEW_URL = `https://drive.google.com/uc?export=preview&id=${DRIVE_FILE_ID}`;
-
-// ⚠️ OJO: aquí tienes una fecha de prueba (11 Feb 2026 14:43)
+// ⚠️ OJO: aquí tienes una fecha de prueba (11 Feb 2026 15:02)
 // Cuando ya lo dejes listo, vuelve a 14 Feb 2026 21:00
-const target = new Date(2026, 1, 11, 14, 43, 0);
+const target = new Date(2026, 1, 11, 15, 2, 0);
 
 // Música local /audio (Netlify)
 const PLAYLIST = [
@@ -515,6 +522,15 @@ y en todo lo bonito que me haces sentir. 💖`;
 ========================= */
 const $ = (id)=>document.getElementById(id);
 const pad = (n)=>String(n).padStart(2,"0");
+
+/* =========================
+   OPEN VIDEO BUTTON (Option B)
+========================= */
+$("openVideoBtn")?.addEventListener("click", ()=>{
+  // seguridad: si está sonando música, la paramos para que escuche el video
+  if (musicEnabled) fadeOutAndStop();
+  window.open(DRIVE_VIEW_URL, "_blank", "noopener,noreferrer");
+});
 
 /* =========================
    CURSOR GLOW
@@ -621,11 +637,6 @@ $("envelope").addEventListener("click", ()=>{
     setPoemForNow();
   }
 });
-
-/* =========================
-   VIDEO
-========================= */
-$("driveFrame").src = DRIVE_PREVIEW_URL;
 
 /* =========================
    MUSIC SYSTEM (STABLE + PRELOAD NEXT)
@@ -780,10 +791,6 @@ function showBanner(){
   setTimeout(()=>b.classList.remove("show"), 6500);
 }
 
-function tryAutoplayVideo(){
-  try{ $("driveFrame").focus(); }catch(e){}
-}
-
 function unlockNow(){
   if (unlocked) return;
   unlocked = true;
@@ -804,8 +811,6 @@ function unlockNow(){
   showBanner();
   explodeHearts();
   confettiBurst();
-
-  setTimeout(tryAutoplayVideo, 500);
 }
 
 function tick(){
@@ -836,6 +841,7 @@ function tick(){
 tick();
 setInterval(tick, 1000);
 
+/* Extra: if user taps video area, stop music (safety) */
 document.querySelector(".videoWrap")?.addEventListener("pointerdown", ()=>{
   if (musicEnabled) fadeOutAndStop();
 });
