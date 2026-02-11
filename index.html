@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>💌 Para Adriana</title>
 
 <style>
@@ -18,6 +18,19 @@
 
   *{ box-sizing:border-box; }
 
+  /* ✅ FIX MOBILE ZOOM / SCALE */
+  html, body{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  body{
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body{
     margin:0;
     min-height:100vh;
@@ -25,13 +38,20 @@
     place-items:center;
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
     color:var(--ink);
-    overflow:hidden;
+
+    /* ✅ IMPORTANT: avoid weird zoom on mobile */
+    overflow-x:hidden;
+    overflow-y:auto;
 
     background:
       radial-gradient(circle at 15% 10%, rgba(255,77,136,.35), transparent 40%),
       radial-gradient(circle at 85% 15%, rgba(124,77,255,.28), transparent 45%),
       radial-gradient(circle at 70% 85%, rgba(255,209,102,.25), transparent 45%),
       linear-gradient(135deg, #ffe6f0, #ffeef7, #f4e7ff);
+
+    /* ✅ notch safe-area */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   /* sparkles layer */
@@ -62,15 +82,20 @@
     mix-blend-mode: screen;
   }
 
+  /* ✅ FIX WRAP on mobile */
   .wrap{
-    width:min(980px, 92vw);
+    width: min(980px, 94vw);
+    margin: 0 auto;
     display:grid;
     gap:16px;
     align-items:start;
     grid-template-columns: 1.1fr .9fr;
   }
   @media (max-width: 860px){
-    .wrap{ grid-template-columns:1fr; }
+    .wrap{
+      width: 92vw;
+      grid-template-columns:1fr;
+    }
   }
 
   .card{
@@ -403,7 +428,7 @@
         <div class="seal">❤</div>
 
         <div class="letter" id="letter">
-          <h2 id="letterTitle">Para Adriana 💌</h2>
+          <h2 id="letterTitle">Para mi Adriana 💌</h2>
           <p class="letterText" id="letterText"></p>
           <div class="sig" id="letterSig">Con mucho amor 💖</div>
         </div>
@@ -425,7 +450,7 @@ const DRIVE_FILE_ID = "1M6qzrnnEx0mPrOjje3fO-LWf5dgrBV5e";
 const DRIVE_PREVIEW_URL = `https://drive.google.com/file/d/${DRIVE_FILE_ID}/preview`;
 
 // Fecha objetivo: 14 Feb 2026 21:00 (hora local del dispositivo)
-const target = new Date(2026, 1, 14, 21, 0, 0);
+const target = new Date(2026, 1, 11, 14, 43, 0);
 
 // Música local /audio (Netlify)
 const PLAYLIST = [
@@ -513,7 +538,6 @@ setInterval(spawnHeart, 420);
 
 /* =========================
    SOUND: envelope open (no external file)
-   Short synthesized "pop" using WebAudio
 ========================= */
 let audioCtx;
 function playEnvelopePop(){
@@ -542,9 +566,8 @@ function typeWriter(text){
   if (typingTimer) clearTimeout(typingTimer);
 
   let i = 0;
-  const speed = 22; // typing speed (ms)
+  const speed = 22;
 
-  // add caret
   const caret = document.createElement("span");
   caret.className = "caret";
   el.appendChild(caret);
@@ -556,8 +579,6 @@ function typeWriter(text){
       el.appendChild(caret);
       i++;
       typingTimer = setTimeout(step, speed);
-    } else {
-      // done: keep caret blinking
     }
   }
   step();
@@ -567,26 +588,19 @@ function typeWriter(text){
    POEM SELECTION: changes at 12:00 PM
 ========================= */
 function getPoemIndex(now){
-  // Switch at noon: if before 12:00, treat as previous "half-day"
-  // This makes the poem stable between 12:00 PM and next 11:59 AM.
   const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const noon = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 12, 0, 0);
 
-  // Create a "poem day counter": each noon increments
-  // We anchor to Feb 10, 2026 noon for deterministic rotation.
-  const anchor = new Date(2026, 1, 10, 12, 0, 0); // Feb is month 1
-  const effective = (now < noon) ? new Date(now.getTime() - 12*60*60*1000) : now; // shift back if before noon
+  const anchor = new Date(2026, 1, 10, 12, 0, 0);
+  const effective = (now < noon) ? new Date(now.getTime() - 12*60*60*1000) : now;
   const steps = Math.floor((effective - anchor) / (24*60*60*1000));
-  const idx = ((steps % poemas.length) + poemas.length) % poemas.length;
-  return idx;
+  return ((steps % poemas.length) + poemas.length) % poemas.length;
 }
 
 function setPoemForNow(){
-  const now = new Date();
-  const idx = getPoemIndex(now);
+  const idx = getPoemIndex(new Date());
   typeWriter(poemas[idx]);
 }
-
 setPoemForNow();
 
 /* =========================
@@ -609,7 +623,7 @@ $("envelope").addEventListener("click", ()=>{
 $("driveFrame").src = DRIVE_PREVIEW_URL;
 
 /* =========================
-   MUSIC SYSTEM (ORDER + FADE OUT)
+   MUSIC SYSTEM (STABLE + PRELOAD NEXT)
 ========================= */
 const bgm = new Audio();
 bgm.preload = "auto";
@@ -618,11 +632,72 @@ bgm.volume = 0.45;
 
 let trackIndex = 0;
 let musicEnabled = false;
+let retryTimer = null;
+
+let nextPreload = new Audio();
+nextPreload.preload = "auto";
 
 function setTrackInfo(text){ $("trackInfo").textContent = text; }
 
+function clearRetry(){
+  if (retryTimer){ clearTimeout(retryTimer); retryTimer = null; }
+}
+
+function scheduleRetry(msg){
+  clearRetry();
+  if (!musicEnabled) return;
+  setTrackInfo(msg);
+  retryTimer = setTimeout(()=>{
+    if (!musicEnabled) return;
+    bgm.play().catch(()=>scheduleRetry("Reintentando…"));
+  }, 1200);
+}
+
+function preloadNext(){
+  if (!PLAYLIST.length) return;
+  const nextUrl = PLAYLIST[trackIndex % PLAYLIST.length];
+  try{
+    nextPreload.src = nextUrl;
+    nextPreload.load();
+  }catch(e){}
+}
+
+function playNext(){
+  if (!PLAYLIST.length){
+    setTrackInfo("Música: (no se encontraron canciones)");
+    return;
+  }
+
+  musicEnabled = true;
+  $("stopBtn").style.display = "inline-block";
+
+  const currentUrl = PLAYLIST[trackIndex % PLAYLIST.length];
+  const currentNumber = (trackIndex % PLAYLIST.length) + 1;
+
+  if (nextPreload.src && nextPreload.src.includes(currentUrl)){
+    bgm.src = nextPreload.src;
+  } else {
+    bgm.src = currentUrl;
+  }
+
+  try{ bgm.load(); }catch(e){}
+  setTrackInfo(`Cargando canción ${currentNumber}/5…`);
+
+  bgm.play().then(()=>{
+    setTrackInfo(`Reproduciendo canción ${currentNumber}/5`);
+  }).catch(()=>{
+    setTrackInfo("Toca 'Activar música' 🎶");
+    scheduleRetry("Reintentando…");
+  });
+
+  trackIndex++;
+  preloadNext();
+}
+
 function fadeOutAndStop(){
+  clearRetry();
   const startVol = 0.45;
+
   let fade = setInterval(() => {
     if (bgm.volume > 0.03){
       bgm.volume = Math.max(0, bgm.volume - 0.03);
@@ -639,33 +714,26 @@ function fadeOutAndStop(){
   setTrackInfo("Música: apagada");
 }
 
-function playNext(){
-  if (!PLAYLIST.length){
-    setTrackInfo("Música: (no se encontraron canciones)");
-    return;
+bgm.addEventListener("ended", ()=>{ if (musicEnabled) playNext(); });
+bgm.addEventListener("waiting", ()=>{ if (musicEnabled) scheduleRetry("Buffering…"); });
+bgm.addEventListener("stalled", ()=>{ if (musicEnabled) scheduleRetry("Conexión lenta… reintentando…"); });
+bgm.addEventListener("error", ()=>{ if (musicEnabled) scheduleRetry("Error de audio… reintentando…"); });
+
+document.addEventListener("visibilitychange", ()=>{
+  if (!document.hidden && musicEnabled && bgm.paused){
+    scheduleRetry("Reanudando…");
   }
-  const url = PLAYLIST[trackIndex % PLAYLIST.length];
-  trackIndex++;
-
-  bgm.src = url;
-  bgm.play().then(()=>{
-    musicEnabled = true;
-    $("stopBtn").style.display = "inline-block";
-    setTrackInfo(`Reproduciendo canción ${trackIndex}/5`);
-  }).catch(()=>{
-    setTrackInfo("Toca 'Activar música' 🎶");
-  });
-}
-
-bgm.addEventListener("ended", ()=>{
-  if (musicEnabled) playNext();
 });
 
 $("musicBtn").addEventListener("click", ()=>{
-  // start or skip
-  playNext();
+  if (!musicEnabled){
+    trackIndex = 0;
+    preloadNext();
+    playNext();
+  } else {
+    playNext();
+  }
 });
-
 $("stopBtn").addEventListener("click", fadeOutAndStop);
 
 /* =========================
@@ -689,8 +757,7 @@ function explodeHearts(){
 }
 
 function confettiBurst(){
-  const count = 42;
-  for(let i=0;i<count;i++){
+  for(let i=0;i<42;i++){
     const c = document.createElement("div");
     c.className = "confetti";
     c.style.left = (Math.random()*100) + "vw";
@@ -709,8 +776,6 @@ function showBanner(){
 }
 
 function tryAutoplayVideo(){
-  // We can’t reliably control Drive iframe playback.
-  // But we can focus the iframe so user can just tap play.
   try{ $("driveFrame").focus(); }catch(e){}
 }
 
@@ -718,28 +783,23 @@ function unlockNow(){
   if (unlocked) return;
   unlocked = true;
 
-  // Stop music smoothly
   fadeOutAndStop();
 
-  // Update UI
   $("timer").style.display="none";
   $("after").style.display="block";
   $("title").textContent="¡Feliz 14, Adriana! 💘";
   $("message").textContent="Tu sorpresa ya está lista 🥰 (la música se detuvo para que escuches el video)";
 
-  // Update letter to special unlock message
   $("envelope").classList.add("open");
   envelopeOpen = true;
   $("tapHint").textContent = "💌 Carta abierta";
   playEnvelopePop();
   typeWriter(unlockMsg);
 
-  // Effects
   showBanner();
   explodeHearts();
   confettiBurst();
 
-  // Best-effort autoplay
   setTimeout(tryAutoplayVideo, 500);
 }
 
@@ -747,12 +807,7 @@ function tick(){
   const now = new Date();
   const diff = target - now;
 
-  // Also update poem if noon passed (light check once per second is fine)
-  // Only when envelope is open, to make it feel alive:
-  // (still updates poem selection when reopened)
-  // We won't retype every second; only if noon boundary crossed.
   if (!unlocked){
-    // check poem change at noon
     const idxNow = getPoemIndex(now);
     if (window.__lastPoemIdx === undefined) window.__lastPoemIdx = idxNow;
     if (idxNow !== window.__lastPoemIdx){
@@ -767,21 +822,15 @@ function tick(){
   }
 
   const total = Math.floor(diff/1000);
-  const days = Math.floor(total/86400);
-  const hrs  = Math.floor((total%86400)/3600);
-  const mins = Math.floor((total%3600)/60);
-  const secs = total%60;
-
-  $("d").textContent = days;
-  $("h").textContent = pad(hrs);
-  $("m").textContent = pad(mins);
-  $("s").textContent = pad(secs);
+  $("d").textContent = Math.floor(total/86400);
+  $("h").textContent = pad(Math.floor((total%86400)/3600));
+  $("m").textContent = pad(Math.floor((total%3600)/60));
+  $("s").textContent = pad(total%60);
 }
 
 tick();
 setInterval(tick, 1000);
 
-/* Extra: if user taps video area, stop music (safety) */
 document.querySelector(".videoWrap")?.addEventListener("pointerdown", ()=>{
   if (musicEnabled) fadeOutAndStop();
 });
