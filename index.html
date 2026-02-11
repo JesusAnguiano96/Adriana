@@ -403,12 +403,14 @@
       </p>
 
       <div class="videoWrap">
+        <!-- ✅ AJUSTE 2 APLICADO AQUÍ: playsinline + allow fullscreen -->
         <iframe
           id="driveFrame"
           allow="autoplay; fullscreen"
           allowfullscreen
           webkitallowfullscreen
           mozallowfullscreen
+          playsinline
           referrerpolicy="no-referrer">
         </iframe>
       </div>
@@ -447,9 +449,12 @@
 
 // Drive video (preview embebido)
 const DRIVE_FILE_ID = "1M6qzrnnEx0mPrOjje3fO-LWf5dgrBV5e";
-const DRIVE_PREVIEW_URL = `https://drive.google.com/file/d/${DRIVE_FILE_ID}/preview`;
 
-// Fecha objetivo: 14 Feb 2026 21:00 (hora local del dispositivo)
+// ✅ Más compatible para iPhone / Chrome con iframe
+const DRIVE_PREVIEW_URL = `https://drive.google.com/uc?export=preview&id=${DRIVE_FILE_ID}`;
+
+// ⚠️ OJO: aquí tienes una fecha de prueba (11 Feb 2026 14:43)
+// Cuando ya lo dejes listo, vuelve a 14 Feb 2026 21:00
 const target = new Date(2026, 1, 11, 14, 43, 0);
 
 // Música local /audio (Netlify)
