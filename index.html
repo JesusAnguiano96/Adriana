@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>💌 Para Adriana</title>
+
+<style>
+  :root{
+    --pink:#ff4d88;
+    --hot:#e91e63;
+    --purple:#7c4dff;
+    --gold:#ffd166;
+    --ink:#3b1b2a;
+    --card:#ffffffea;
+    --shadow: 0 18px 60px rgba(0,0,0,.18);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    color:var(--ink);
+    overflow:hidden;
+
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,77,136,.35), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(124,77,255,.28), transparent 45%),
+      radial-gradient(circle at 70% 85%, rgba(255,209,102,.25), transparent 45%),
+      linear-gradient(135deg, #ffe6f0, #ffeef7, #f4e7ff);
+  }
+
+  /* sparkles layer */
+  .sparkle{
+    position:fixed;
+    inset:-60px;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 2px) 0 0/90px 90px,
+      radial-gradient(circle, rgba(255,255,255,.35) 0 1px, transparent 2px) 30px 40px/120px 120px;
+    opacity:.6;
+    animation: drift 18s linear infinite;
+    pointer-events:none;
+  }
+  @keyframes drift{
+    to{ transform: translate3d(40px, -30px, 0); }
+  }
+
+  /* cursor glow */
+  .cursorGlow{
+    position:fixed;
+    width:220px;
+    height:220px;
+    border-radius:999px;
+    pointer-events:none;
+    background: radial-gradient(circle at center, rgba(255,77,136,.25), rgba(124,77,255,.10), transparent 65%);
+    transform: translate(-9999px,-9999px);
+    filter: blur(2px);
+    mix-blend-mode: screen;
+  }
+
+  .wrap{
+    width:min(980px, 92vw);
+    display:grid;
+    gap:16px;
+    align-items:start;
+    grid-template-columns: 1.1fr .9fr;
+  }
+  @media (max-width: 860px){
+    .wrap{ grid-template-columns:1fr; }
+  }
+
+  .card{
+    background: var(--card);
+    border:1px solid rgba(233,30,99,.18);
+    border-radius:28px;
+    box-shadow: var(--shadow);
+    padding:22px;
+    backdrop-filter: blur(10px);
+  }
+
+  h1{
+    margin:0 0 8px;
+    font-size:28px;
+    letter-spacing:.2px;
+    color:#8a1140;
+  }
+  .sub{
+    margin:0 0 14px;
+    opacity:.92;
+  }
+
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+
+  .btn{
+    appearance:none;
+    border:0;
+    cursor:pointer;
+    padding:12px 14px;
+    border-radius:16px;
+    font-weight:900;
+    letter-spacing:.2px;
+    color:white;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    box-shadow: 0 12px 26px rgba(255,77,136,.22);
+    transition: transform .12s ease, filter .2s ease;
+  }
+  .btn:hover{ filter: brightness(1.03); }
+  .btn:active{ transform: scale(.98); }
+
+  .btn2{
+    background: linear-gradient(135deg, var(--hot), #ff7aa8);
+  }
+
+  .pill{
+    padding:10px 12px;
+    border-radius:999px;
+    border:1px solid rgba(233,30,99,.18);
+    background: rgba(255,255,255,.75);
+    font-size:13px;
+  }
+
+  /* Timer */
+  .timer{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:14px 0 6px;
+  }
+  .box{
+    background:#fff;
+    border:1px solid rgba(233,30,99,.22);
+    border-radius:18px;
+    padding:10px 14px;
+    min-width:96px;
+    text-align:center;
+  }
+  .num{ font-size:26px; font-weight:900; color:#d81b60; }
+  .lbl{ font-size:12px; opacity:.7; }
+
+  /* Envelope + letter */
+  .envelopeStage{
+    display:grid;
+    place-items:center;
+    min-height:460px;
+    position:relative;
+  }
+  .envelope{
+    width:min(440px, 92%);
+    height:280px;
+    position:relative;
+    cursor:pointer;
+    user-select:none;
+    transform-style:preserve-3d;
+  }
+
+  .envBody{
+    position:absolute;
+    inset:0;
+    border-radius:24px;
+    background: linear-gradient(135deg, #fff, #ffe6f0);
+    box-shadow: 0 14px 40px rgba(0,0,0,.12);
+    border:1px solid rgba(233,30,99,.18);
+    overflow:hidden;
+  }
+  .envBody:before, .envBody:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(135deg, transparent 49%, rgba(255,77,136,.18) 50%) left/50% 100% no-repeat,
+      linear-gradient(-135deg, transparent 49%, rgba(124,77,255,.16) 50%) right/50% 100% no-repeat;
+    opacity:.55;
+  }
+
+  .flap{
+    position:absolute;
+    left:0; right:0;
+    top:-2px;
+    height:58%;
+    transform-origin: top center;
+    transform: rotateX(0deg);
+    transition: transform .75s cubic-bezier(.2,.85,.2,1);
+    border-radius:24px;
+    background: linear-gradient(135deg, rgba(255,77,136,.95), rgba(124,77,255,.9));
+    box-shadow: 0 10px 18px rgba(0,0,0,.12);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  .seal{
+    position:absolute;
+    left:50%;
+    top:58%;
+    transform: translate(-50%, -50%);
+    width:66px;
+    height:66px;
+    border-radius:999px;
+    background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,.3) 30%, rgba(0,0,0,.08) 100%),
+                linear-gradient(135deg, #ff4d88, #7c4dff);
+    display:grid;
+    place-items:center;
+    color:white;
+    font-weight:900;
+    box-shadow: 0 12px 24px rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.35);
+  }
+
+  .letter{
+    position:absolute;
+    left:50%;
+    top:10%;
+    transform: translateX(-50%) translateY(130px);
+    width:min(400px, 88%);
+    height:280px;
+    background: rgba(255,255,255,.98);
+    border-radius:20px;
+    border:1px solid rgba(233,30,99,.18);
+    box-shadow: 0 18px 40px rgba(0,0,0,.14);
+    padding:18px 18px 14px;
+    opacity:0;
+    transition: transform .85s cubic-bezier(.2,.85,.2,1), opacity .5s ease;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .letter h2{
+    margin:0 0 8px;
+    color:#8a1140;
+    font-size:20px;
+  }
+  .letterText{
+    margin:0;
+    line-height:1.38;
+    white-space:pre-line;
+    flex:1;
+  }
+  .caret{
+    display:inline-block;
+    width:10px;
+    height:18px;
+    margin-left:2px;
+    background: rgba(216, 27, 96, .85);
+    vertical-align:baseline;
+    animation: blink .9s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .sig{
+    margin-top:10px;
+    font-weight:900;
+    color:#d81b60;
+  }
+
+  .open .flap{ transform: rotateX(180deg); }
+  .open .letter{
+    opacity:1;
+    transform: translateX(-50%) translateY(-10px);
+  }
+
+  .tapHint{
+    margin-top:12px;
+    font-size:13px;
+    opacity:.85;
+  }
+
+  /* Video embed */
+  .videoWrap{
+    position: relative;
+    width:100%;
+    margin-top:14px;
+    border-radius:22px;
+    overflow:hidden;
+    background:#000;
+    border: 1px solid rgba(233,30,99,.2);
+    box-shadow: 0 14px 42px rgba(0,0,0,.14);
+  }
+  .videoWrap::before{ content:""; display:block; padding-top:56.25%; }
+  .videoWrap iframe{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border:0;
+  }
+
+  /* Hearts floating */
+  .heart{
+    position:fixed;
+    bottom:-40px;
+    font-size:20px;
+    animation:floatUp linear forwards;
+    pointer-events:none;
+    user-select:none;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.15));
+  }
+  @keyframes floatUp{
+    to{ transform:translateY(-112vh) translateX(var(--dx)); opacity:0; }
+  }
+
+  /* Unlock banner */
+  .loveBanner{
+    position:fixed;
+    left:50%;
+    top:16px;
+    transform:translateX(-50%) translateY(-20px);
+    padding:12px 16px;
+    border-radius:999px;
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(233,30,99,.18);
+    box-shadow: 0 14px 40px rgba(0,0,0,.12);
+    font-weight:900;
+    color:#8a1140;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .loveBanner.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  /* Confetti (soft) */
+  .confetti{
+    position:fixed;
+    top:-20px;
+    width:10px;
+    height:14px;
+    border-radius:3px;
+    opacity:.85;
+    animation: confettiFall linear forwards;
+    pointer-events:none;
+  }
+  @keyframes confettiFall{
+    to{
+      transform: translateY(110vh) rotate(720deg);
+      opacity:0;
+    }
+  }
+</style>
+</head>
+
+<body>
+<div class="sparkle"></div>
+<div class="cursorGlow" id="cursorGlow"></div>
+<div class="loveBanner" id="loveBanner">Te amo, Adriana 💖</div>
+
+<div class="wrap">
+
+  <!-- Left: controls + timer + video -->
+  <div class="card">
+    <h1 id="title">Mi amor, falta poquito 💖</h1>
+    <p class="sub" id="message">Se desbloquea el <b>14 de febrero</b> a las <b>9:00 PM</b>.</p>
+
+    <div class="row" style="margin-bottom:8px;">
+      <button class="btn" id="musicBtn">Activar música 🎶</button>
+      <button class="btn btn2" id="stopBtn" style="display:none;">Pausar música 🔇</button>
+      <span class="pill" id="trackInfo">Música: apagada</span>
+    </div>
+
+    <div class="timer" id="timer">
+      <div class="box"><div class="num" id="d">--</div><div class="lbl">DÍAS</div></div>
+      <div class="box"><div class="num" id="h">--</div><div class="lbl">HORAS</div></div>
+      <div class="box"><div class="num" id="m">--</div><div class="lbl">MIN</div></div>
+      <div class="box"><div class="num" id="s">--</div><div class="lbl">SEG</div></div>
+    </div>
+
+    <div id="after" style="display:none;">
+      <p style="margin:10px 0 0; font-weight:900; color:#8a1140;">
+        💞 Ya es momento 💞
+      </p>
+
+      <div class="videoWrap">
+        <iframe
+          id="driveFrame"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+          webkitallowfullscreen
+          mozallowfullscreen
+          referrerpolicy="no-referrer">
+        </iframe>
+      </div>
+
+      <p style="font-size:12px; opacity:.78; margin-top:10px;">
+        Si aún aparece “Necesitas acceso”, espera 1–2 minutos y recarga.
+      </p>
+    </div>
+  </div>
+
+  <!-- Right: animated envelope -->
+  <div class="card">
+    <div class="envelopeStage">
+      <div class="envelope" id="envelope" title="Toca para abrir 💌">
+        <div class="envBody"></div>
+        <div class="flap"></div>
+        <div class="seal">❤</div>
+
+        <div class="letter" id="letter">
+          <h2 id="letterTitle">Para Adriana 💌</h2>
+          <p class="letterText" id="letterText"></p>
+          <div class="sig" id="letterSig">Con mucho amor 💖</div>
+        </div>
+      </div>
+
+      <div class="tapHint" id="tapHint">Toca el sobre para abrir la carta 💌</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================
+   CONFIG
+========================= */
+
+// Drive video (preview embebido)
+const DRIVE_FILE_ID = "1M6qzrnnEx0mPrOjje3fO-LWf5dgrBV5e";
+const DRIVE_PREVIEW_URL = `https://drive.google.com/file/d/${DRIVE_FILE_ID}/preview`;
+
+// Fecha objetivo: 14 Feb 2026 21:00 (hora local del dispositivo)
+const target = new Date(2026, 1, 14, 21, 0, 0);
+
+// Música local /audio (Netlify)
+const PLAYLIST = [
+  "audio/cancion1.mp3",
+  "audio/cancion2.mp3",
+  "audio/cancion3.mp3",
+  "audio/cancion4.mp3",
+  "audio/cancion5.mp3"
+];
+
+/* =========================
+   POEMS (validated)
+   Change each day at 12:00 PM
+========================= */
+const poemas = [
+`Mi adrianita, hoy te pienso despacio,
+como quien cuida una luz en medio del viento.
+No sé en qué momento te volviste refugio,
+pero desde entonces mi calma tiene tu nombre.
+Si el día pesa, ven… que aquí te guardo. 💗`,
+
+`Mi bebita, te prometo lo sencillo:
+hacerte reír aunque el mundo ande serio,
+tomarte de la mano aunque no estemos cerca,
+y recordarte, sin prisa, que vales muchísimo.
+Si me preguntas dónde está mi corazón,
+te señalo: donde estás tú. 💘`,
+
+`Mi nanita, qué bonito es saber
+que existes en el mismo tiempo que yo.
+A veces la vida corre, pero tú la vuelves pausa,
+y en esa pausa me quedo, como si fuera hogar.
+Si te da frío el mundo, yo te presto mi abrigo. ❤️`,
+
+`Mi adrianita, mi paz, mi suerte:
+llegaste como llegan las cosas buenas,
+sin hacer ruido y cambiándolo todo.
+Ojalá te mires con mis ojos un ratito,
+para que entiendas lo hermosa que eres
+cuando simplemente eres tú. 💞`,
+
+`Mi bebita, mi casa, mi risa:
+si supieras cuánto me gustas en lo cotidiano,
+en tus “buenos días”, en tus silencios,
+en tu manera de existir con tanta ternura.
+Yo no quiero un amor perfecto…
+quiero uno contigo, y para siempre. 💝`
+];
+
+const unlockMsg = `Mi adrianita, llegó el momento.
+Abre esto con una sonrisa, por favor…
+porque lo hice pensando en ti,
+y en todo lo bonito que me haces sentir. 💖`;
+
+/* =========================
+   HELPERS
+========================= */
+const $ = (id)=>document.getElementById(id);
+const pad = (n)=>String(n).padStart(2,"0");
+
+/* =========================
+   CURSOR GLOW
+========================= */
+const glow = $("cursorGlow");
+window.addEventListener("pointermove", (e)=>{
+  glow.style.transform = `translate(${e.clientX-110}px, ${e.clientY-110}px)`;
+});
+
+/* =========================
+   HEARTS (ambient)
+========================= */
+const hearts=["💖","💘","💞","💗","💓","❤️","💝"];
+function spawnHeart(){
+  const el=document.createElement("div");
+  el.className="heart";
+  el.innerText=hearts[Math.floor(Math.random()*hearts.length)];
+  el.style.left=Math.random()*100+"vw";
+  el.style.animationDuration=(6+Math.random()*6)+"s";
+  el.style.setProperty("--dx", (Math.random()*140 - 70) + "px");
+  el.style.fontSize=(14+Math.random()*22)+"px";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 13000);
+}
+setInterval(spawnHeart, 420);
+
+/* =========================
+   SOUND: envelope open (no external file)
+   Short synthesized "pop" using WebAudio
+========================= */
+let audioCtx;
+function playEnvelopePop(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(520, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(260, audioCtx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.18, audioCtx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.13);
+  }catch(e){}
+}
+
+/* =========================
+   TYPEWRITER
+========================= */
+let typingTimer = null;
+function typeWriter(text){
+  const el = $("letterText");
+  el.textContent = "";
+  if (typingTimer) clearTimeout(typingTimer);
+
+  let i = 0;
+  const speed = 22; // typing speed (ms)
+
+  // add caret
+  const caret = document.createElement("span");
+  caret.className = "caret";
+  el.appendChild(caret);
+
+  function step(){
+    if (i < text.length){
+      caret.remove();
+      el.textContent += text.charAt(i);
+      el.appendChild(caret);
+      i++;
+      typingTimer = setTimeout(step, speed);
+    } else {
+      // done: keep caret blinking
+    }
+  }
+  step();
+}
+
+/* =========================
+   POEM SELECTION: changes at 12:00 PM
+========================= */
+function getPoemIndex(now){
+  // Switch at noon: if before 12:00, treat as previous "half-day"
+  // This makes the poem stable between 12:00 PM and next 11:59 AM.
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const noon = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 12, 0, 0);
+
+  // Create a "poem day counter": each noon increments
+  // We anchor to Feb 10, 2026 noon for deterministic rotation.
+  const anchor = new Date(2026, 1, 10, 12, 0, 0); // Feb is month 1
+  const effective = (now < noon) ? new Date(now.getTime() - 12*60*60*1000) : now; // shift back if before noon
+  const steps = Math.floor((effective - anchor) / (24*60*60*1000));
+  const idx = ((steps % poemas.length) + poemas.length) % poemas.length;
+  return idx;
+}
+
+function setPoemForNow(){
+  const now = new Date();
+  const idx = getPoemIndex(now);
+  typeWriter(poemas[idx]);
+}
+
+setPoemForNow();
+
+/* =========================
+   ENVELOPE ANIMATION
+========================= */
+let envelopeOpen = false;
+$("envelope").addEventListener("click", ()=>{
+  envelopeOpen = !envelopeOpen;
+  $("envelope").classList.toggle("open", envelopeOpen);
+  $("tapHint").textContent = envelopeOpen ? "💌 Carta abierta" : "Toca el sobre para abrir la carta 💌";
+  if (envelopeOpen){
+    playEnvelopePop();
+    setPoemForNow();
+  }
+});
+
+/* =========================
+   VIDEO
+========================= */
+$("driveFrame").src = DRIVE_PREVIEW_URL;
+
+/* =========================
+   MUSIC SYSTEM (ORDER + FADE OUT)
+========================= */
+const bgm = new Audio();
+bgm.preload = "auto";
+bgm.loop = false;
+bgm.volume = 0.45;
+
+let trackIndex = 0;
+let musicEnabled = false;
+
+function setTrackInfo(text){ $("trackInfo").textContent = text; }
+
+function fadeOutAndStop(){
+  const startVol = 0.45;
+  let fade = setInterval(() => {
+    if (bgm.volume > 0.03){
+      bgm.volume = Math.max(0, bgm.volume - 0.03);
+    } else {
+      clearInterval(fade);
+      bgm.pause();
+      bgm.currentTime = 0;
+      bgm.volume = startVol;
+    }
+  }, 120);
+
+  musicEnabled = false;
+  $("stopBtn").style.display = "none";
+  setTrackInfo("Música: apagada");
+}
+
+function playNext(){
+  if (!PLAYLIST.length){
+    setTrackInfo("Música: (no se encontraron canciones)");
+    return;
+  }
+  const url = PLAYLIST[trackIndex % PLAYLIST.length];
+  trackIndex++;
+
+  bgm.src = url;
+  bgm.play().then(()=>{
+    musicEnabled = true;
+    $("stopBtn").style.display = "inline-block";
+    setTrackInfo(`Reproduciendo canción ${trackIndex}/5`);
+  }).catch(()=>{
+    setTrackInfo("Toca 'Activar música' 🎶");
+  });
+}
+
+bgm.addEventListener("ended", ()=>{
+  if (musicEnabled) playNext();
+});
+
+$("musicBtn").addEventListener("click", ()=>{
+  // start or skip
+  playNext();
+});
+
+$("stopBtn").addEventListener("click", fadeOutAndStop);
+
+/* =========================
+   COUNTDOWN + UNLOCK
+========================= */
+let unlocked = false;
+
+function explodeHearts(){
+  for(let i=0;i<60;i++){
+    const el = document.createElement("div");
+    el.className = "heart";
+    el.innerText = hearts[Math.floor(Math.random()*hearts.length)];
+    el.style.left = Math.random()*100 + "vw";
+    el.style.bottom = (Math.random()*15 - 20) + "px";
+    el.style.animationDuration = (2.4 + Math.random()*1.8) + "s";
+    el.style.setProperty("--dx", (Math.random()*260 - 130) + "px");
+    el.style.fontSize = (16 + Math.random()*24) + "px";
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 6000);
+  }
+}
+
+function confettiBurst(){
+  const count = 42;
+  for(let i=0;i<count;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = (Math.random()*100) + "vw";
+    c.style.background = `hsl(${Math.random()*360}, 85%, 70%)`;
+    c.style.animationDuration = (2.8 + Math.random()*2.0) + "s";
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 5200);
+  }
+}
+
+function showBanner(){
+  const b = $("loveBanner");
+  b.classList.add("show");
+  setTimeout(()=>b.classList.remove("show"), 6500);
+}
+
+function tryAutoplayVideo(){
+  // We can’t reliably control Drive iframe playback.
+  // But we can focus the iframe so user can just tap play.
+  try{ $("driveFrame").focus(); }catch(e){}
+}
+
+function unlockNow(){
+  if (unlocked) return;
+  unlocked = true;
+
+  // Stop music smoothly
+  fadeOutAndStop();
+
+  // Update UI
+  $("timer").style.display="none";
+  $("after").style.display="block";
+  $("title").textContent="¡Feliz 14, Adriana! 💘";
+  $("message").textContent="Tu sorpresa ya está lista 🥰 (la música se detuvo para que escuches el video)";
+
+  // Update letter to special unlock message
+  $("envelope").classList.add("open");
+  envelopeOpen = true;
+  $("tapHint").textContent = "💌 Carta abierta";
+  playEnvelopePop();
+  typeWriter(unlockMsg);
+
+  // Effects
+  showBanner();
+  explodeHearts();
+  confettiBurst();
+
+  // Best-effort autoplay
+  setTimeout(tryAutoplayVideo, 500);
+}
+
+function tick(){
+  const now = new Date();
+  const diff = target - now;
+
+  // Also update poem if noon passed (light check once per second is fine)
+  // Only when envelope is open, to make it feel alive:
+  // (still updates poem selection when reopened)
+  // We won't retype every second; only if noon boundary crossed.
+  if (!unlocked){
+    // check poem change at noon
+    const idxNow = getPoemIndex(now);
+    if (window.__lastPoemIdx === undefined) window.__lastPoemIdx = idxNow;
+    if (idxNow !== window.__lastPoemIdx){
+      window.__lastPoemIdx = idxNow;
+      if (envelopeOpen) setPoemForNow();
+    }
+  }
+
+  if (diff <= 0){
+    unlockNow();
+    return;
+  }
+
+  const total = Math.floor(diff/1000);
+  const days = Math.floor(total/86400);
+  const hrs  = Math.floor((total%86400)/3600);
+  const mins = Math.floor((total%3600)/60);
+  const secs = total%60;
+
+  $("d").textContent = days;
+  $("h").textContent = pad(hrs);
+  $("m").textContent = pad(mins);
+  $("s").textContent = pad(secs);
+}
+
+tick();
+setInterval(tick, 1000);
+
+/* Extra: if user taps video area, stop music (safety) */
+document.querySelector(".videoWrap")?.addEventListener("pointerdown", ()=>{
+  if (musicEnabled) fadeOutAndStop();
+});
+</script>
+
+</body>
+</html>
